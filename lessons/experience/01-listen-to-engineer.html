@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>什么时候该听老工程师的</title>
+<style>
+  :root{ --catc:#7048e8 }
+  :root{
+    --bg:#fdfaf5; --ink:#2b2b3a; --muted:#6b6b80; --line:#e6e0d6;
+    --card:#fff; --accent:#e8590c; --blue:#1971c2; --good:#2f9e44; --bad:#c92a2a;
+    --purple:#7048e8; --code-bg:#282a36; --code-ink:#f8f8f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:17px;line-height:1.85}
+  .wrap{max-width:780px;margin:0 auto;padding:48px 24px 100px}
+  h1{font-size:2em;line-height:1.3;margin:0 0 10px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 36px}
+  .part{margin:64px 0 0;padding:26px 0 0;border-top:3px solid var(--ink)}
+  .partnum{display:inline-block;background:var(--ink);color:#fff;font-size:.72em;font-weight:700;
+    padding:4px 12px;border-radius:20px;letter-spacing:.08em;margin-bottom:12px}
+  h2{font-size:1.6em;margin:8px 0 18px;letter-spacing:-.015em}
+  h3{font-size:1.2em;margin:38px 0 12px;padding-left:12px;border-left:4px solid var(--accent)}
+  h4{font-size:1.03em;margin:26px 0 8px;color:var(--blue)}
+  p{margin:14px 0}
+  code{background:#f0ebe2;padding:2px 6px;border-radius:4px;font-size:.9em;
+    font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:10px;
+    overflow-x:auto;font-size:.85em;line-height:1.65;font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:1em}
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 24px;margin:28px 0}
+  .toc ol{margin:6px 0;padding-left:22px} .toc li{margin:5px 0}
+  .toc a{color:var(--blue);text-decoration:none} .toc a:hover{text-decoration:underline}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .key{background:#fff4e6;border-left:5px solid var(--accent);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .blue{background:#e7f5ff;border-left:5px solid var(--blue);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .green{background:#ebfbee;border-left:5px solid var(--good);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .story{background:#f8f5ef;border-radius:12px;padding:20px 24px;margin:22px 0}
+  .story p:first-child{margin-top:0} .story p:last-child{margin-bottom:0}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.94em}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:700;color:var(--muted);font-size:.85em;letter-spacing:.03em}
+  .yes{color:var(--good);font-weight:700} .no{color:var(--bad);font-weight:700}
+  ol,ul{padding-left:24px} li{margin:7px 0}
+  /* 链表图示 */
+  .ll{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:20px 0;
+      font-family:"SF Mono",Menlo,monospace;font-size:.84em}
+  .node{display:flex;border:2px solid var(--blue);border-radius:7px;overflow:hidden;background:#fff}
+  .node .v{padding:7px 12px;font-weight:700;border-right:2px solid var(--blue)}
+  .node .p{padding:7px 10px;background:#e7f5ff;color:var(--blue)}
+  .ar{color:var(--muted);font-size:1.2em;font-weight:700}
+  .nul{padding:7px 12px;border:2px dashed var(--line);border-radius:7px;color:var(--muted)}
+  /* 数组模拟图示 */
+  .arr{margin:20px 0;font-family:"SF Mono",Menlo,monospace;font-size:.84em;overflow-x:auto}
+  .arr table{width:auto;min-width:340px;border-collapse:collapse}
+  .arr td,.arr th{border:1px solid var(--line);padding:7px 13px;text-align:center}
+  .arr th{background:#f0ebe2;color:var(--ink);font-weight:700}
+  .arr .lbl{background:#f8f5ef;font-weight:700;color:var(--muted);text-align:right}
+  .hi{background:#fff4e6;font-weight:700}
+  .ex{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .ex h4{margin-top:0;color:var(--ink);display:flex;align-items:center;gap:10px}
+  .lv{display:inline-block;font-size:.68em;font-weight:700;padding:3px 10px;border-radius:20px;color:#fff;letter-spacing:.05em}
+  .lv1{background:var(--good)} .lv2{background:var(--blue)} .lv3{background:var(--purple)} .lv4{background:var(--accent)}
+  .chk{list-style:none;padding-left:0}
+  .chk li{padding-left:30px;position:relative;margin:10px 0}
+  .chk li:before{content:"☐";position:absolute;left:4px;font-size:1.2em;color:var(--muted)}
+  footer{margin-top:70px;padding-top:22px;border-top:2px solid var(--line);color:var(--muted);font-size:.9em}
+  .big{font-size:1.2em;font-weight:700;text-align:center;margin:16px 0}
+  .fig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0;overflow-x:auto}
+  .fig svg{display:block;margin:0 auto;max-width:100%;height:auto}
+  .figcap{text-align:center;color:var(--muted);font-size:.88em;margin:10px 0 0}
+  .badge{display:inline-block;background:var(--purple);color:#fff;font-size:.68em;font-weight:700;
+    padding:3px 11px;border-radius:20px;letter-spacing:.08em;flex:none}
+  /* 折叠支线 */
+  .dig{margin:32px 0;border:3px solid var(--purple);border-radius:14px;background:#f8f6ff;
+    overflow:hidden;box-shadow:0 4px 16px rgba(112,72,232,.13)}
+  .dig summary{cursor:pointer;padding:17px 22px;font-weight:700;color:var(--purple);font-size:1.1em;
+    background:#f0ebff;
+    list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+  .dig summary::-webkit-details-marker{display:none}
+  .dig summary::before{content:"▶";font-size:.8em;transition:transform .18s}
+  .dig[open] summary::before{transform:rotate(90deg)}
+  .dig summary:hover{background:#e5dbff}
+  .digbody{padding:4px 24px 22px;border-top:1px solid #e0d8fa}
+  .digbody h4{color:var(--purple);margin:22px 0 8px}
+  .big2{font-size:1.15em;text-align:center;margin:16px 0;color:var(--purple)}
+  .frames{margin:18px 0;font-family:"SF Mono",Menlo,monospace;font-size:.86em}
+  .fr{display:flex;align-items:center;gap:10px;margin:5px 0}
+  .frl{width:52px;text-align:right;color:var(--muted);font-size:.9em;font-weight:700;flex:none}
+  .frb{flex:none;width:150px;padding:9px 12px;border:2px solid var(--purple);border-radius:6px;
+    background:#fff;text-align:center;font-weight:700;color:var(--purple)}
+  .frb.top{background:#e5dbff}
+  .frn{color:var(--muted);font-size:.88em;font-family:-apple-system,"PingFang SC",sans-serif}
+
+  /* ============ 打印 / PDF ============ */
+
+  /* ---- 分类导航 ---- */
+  .bc{display:flex;align-items:center;gap:9px;font-size:.9em;margin:0 0 28px;flex-wrap:wrap}
+  .bc a{color:var(--muted);text-decoration:none;font-weight:700}
+  .bc a:hover{color:var(--accent)}
+  .bc .sep{color:var(--line)}
+  .bc .cat{background:var(--catc);color:#fff;font-weight:700;font-size:.84em;
+    padding:3px 12px;border-radius:20px;letter-spacing:.04em}
+  .next{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 22px;margin:40px 0 0}
+  .next .nt{font-weight:700;margin:0 0 10px;font-size:.95em;color:var(--muted);letter-spacing:.03em}
+  .next p{margin:9px 0} .next p:last-child{margin-bottom:0}
+  .next a{color:var(--blue);text-decoration:none;font-weight:700}
+  .next a:hover{text-decoration:underline}
+  .backtop{margin-top:34px;font-size:.92em}
+  .backtop a{color:var(--muted);text-decoration:none}
+  .backtop a:hover{color:var(--accent)}
+
+  /* ============ 打印（不是重点，屏幕阅读为主） ============ */
+  @page { size: A4; margin: 14mm 12mm 16mm; }
+  @media print {
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    body{ font-size:10.5pt; line-height:1.72 }
+    .wrap{ max-width:100%; padding:0 }
+    h1{ font-size:19pt } h2{ font-size:14.5pt } h3{ font-size:12.5pt } h4{ font-size:11.2pt }
+    h1,h2,h3,h4{ break-after:avoid; page-break-after:avoid }
+    p,li{ orphans:3; widows:3 }
+    pre,table,.card,.ex,.fig,.key,.blue,.green,.story,.dig,.arr,.ll,.frames,.toc,footer,tr{
+      break-inside:avoid; page-break-inside:avoid }
+    .dig[open] .digbody{ display:block }
+    details{ break-inside:avoid }
+    .bc,.next,.backtop{ display:none }
+    a{ color:inherit; text-decoration:none }
+    pre{ font-size:8.6pt; line-height:1.5 }
+    table{ font-size:9.4pt } .fig svg{ max-height:74mm }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="bc">
+  <a href="../../index.html">← C++ 小课堂</a>
+  <span class="sep">/</span>
+  <span class="cat">经验心得</span>
+</nav>
+
+<h1>什么时候该听老工程师的</h1>
+<p class="sub">C++ 小课堂 · 经验心得 —— 这一篇不给答案，给一把尺子</p>
+
+<p>你爸爸写了很多年程序。老师教了很多年课。有时候他们说的不一样，甚至他们各自说的还都不完全对。</p>
+
+<p>那你该听谁的？</p>
+
+<p>这一部分不告诉你答案，而是给你一把<strong>尺子</strong>，让你自己量。</p>
+
+<h3>先讲两件真实发生的事</h3>
+
+<div class="story">
+<p><strong>故事一：谁说得对？</strong></p>
+<p>老师说：int 溢出之后会变成一个<strong>随机值</strong>。</p>
+<p>爸爸说：不对，会变成一个<strong>负值</strong>。</p>
+<p>后来我们真的跑了程序。结果是：<strong>两个人都不完全对。</strong></p>
+<p>硬件层面确实变成一个确定的负数（爸爸更接近真相），但 C++ 规则书根本不保证这件事——编译器可能把你的整段代码删掉（所以老师"别依赖它"的结论是对的，只是理由说错了）。</p>
+<p>真正的答案是第三个：<strong>溢出之后，整个程序的行为都失去保证了。</strong></p>
+<p style="margin-bottom:0"><a href="../system/01-integer-overflow.html">→ 这场争论的完整经过、实验代码和那个"矛盾的输出"，都在「整数溢出」那一篇</a></p>
+</div>
+
+<div class="story">
+<p><strong>故事二：爸爸赢了的那一次</strong></p>
+<p>我做了个实验，想证明"静态数组和动态分配的性能差不多"。数据显示只差 1.04 倍。</p>
+<p>爸爸说：<em>你这个实验只测了"分配一次"。如果是反复增长呢？栈变大的时候，vector 要重新分配、还要把老数据全部拷贝过去。</em></p>
+<p>他是对的。我重新测，反复增长的情况慢了 <strong>3.4 倍</strong>。我的实验设计漏了一整个场景。</p>
+<p style="margin-bottom:0"><a href="../system/02-memory-stack-cache.html#grow">→ 重测的数据在「内存、栈与缓存」那一篇的"容器变大是要花钱的"</a></p>
+</div>
+
+<div class="key">
+注意这两个故事的区别：<br>
+故事一里，爸爸的说法<strong>不够准确</strong>。<br>
+故事二里，爸爸<strong>发现了我没想到的问题</strong>。<br>
+同一个人，两种情况。所以"听不听爸爸的"不是一个是非题。
+</div>
+
+<h3>尺子：问自己三个问题</h3>
+
+<h4>问题 1 · 这条建议，是关于"电脑怎么工作"的，还是关于"人怎么写代码"的？</h4>
+
+<table>
+<tr><th>类型</th><th>例子</th><th>该不该听</th></tr>
+<tr>
+<td><strong>电脑怎么工作</strong><br><span style="color:var(--muted);font-size:.9em">硬件事实</span></td>
+<td>int 只有 32 位<br>栈空间只有 8MB<br>内存跳着访问会很慢<br>拷贝数据要花时间</td>
+<td class="yes">几乎永远该听<br><span style="font-weight:400;font-size:.9em">这些十年、二十年都不会变</span></td>
+</tr>
+<tr>
+<td><strong>人怎么写代码</strong><br><span style="color:var(--muted);font-size:.9em">工程约定</span></td>
+<td>要不要手写数据结构<br>变量该怎么命名<br>要不要写注释<br>用不用智能指针</td>
+<td class="no">要看你在干什么<br><span style="font-weight:400;font-size:.9em">竞赛和工作的答案不一样</span></td>
+</tr>
+</table>
+
+<p>第一类几乎全部该听。你爸爸踩过的坑，是<strong>硬件的坑</strong>，硬件没变，坑就还在那儿。</p>
+
+<p>第二类要看目标。这就引出第二个问题——</p>
+
+<h4>问题 2 · 我现在的目标，和他当年的目标一样吗？</h4>
+
+<table>
+<tr><th></th><th>信息学竞赛</th><th>工程师写程序</th></tr>
+<tr><td>要解决什么</td><td>两小时内解出三道题</td><td>三年不出事故</td></tr>
+<tr><td>代码活多久</td><td><strong>两秒钟</strong>，跑完就扔</td><td><strong>好几年</strong>，很多人一起改</td></tr>
+<tr><td>内存泄漏要紧吗</td><td>不要紧，程序退出全回收</td><td><strong>非常要紧</strong>，跑一天就崩</td></tr>
+<tr><td>手写数据结构？</td><td>能用 STL 就别手写，浪费时间</td><td>看情况，可读性优先</td></tr>
+<tr><td>代码好不好看？</td><td>不重要，没人会再看它</td><td><strong>很重要</strong>，别人要维护</td></tr>
+</table>
+
+<div class="blue">
+<strong>所以：</strong>当爸爸说"这样写不好维护"——他是对的，<em>在他的目标下</em>。<br>
+但你现在在打竞赛，代码活两秒钟，没有"维护"这回事。<br><br>
+这不代表他错了，是<strong>你们在解不同的题</strong>。等你以后写要跑好几年的程序，他那套会突然全部变得重要。
+</div>
+
+<h4>问题 3 · 他说的是"结论"，还是"为什么"？</h4>
+
+<p>这是最重要的一个问题。</p>
+
+<p>老工程师最值钱的东西，往往<strong>不是他给的答案，而是他关心的问题</strong>。</p>
+
+<p>回到故事二：爸爸那句"如果是反复增长呢？"——这句话本身比任何答案都值钱。因为它体现的是一种思维习惯：</p>
+
+<div class="big">"你这个实验，是不是漏了一种情况？"</div>
+
+<p>结论会过时（某个库、某个技巧、某个写法），<strong>但"该问什么问题"不会过时</strong>。听建议的时候，多问一句"为什么"，你拿到的东西价值能翻十倍。</p>
+
+<h3>那如果你觉得他说错了呢？</h3>
+
+<p>会有这种时候的。老师会说错，爸爸会说错，我也会说错（故事二就是我错了）。</p>
+
+<p>处理方法只有一个，而且特别简单：</p>
+
+<div class="key">
+<strong>别争论，跑个程序。</strong>
+</div>
+
+<p>看看故事一是怎么解决的——不是靠谁嗓门大，是把代码敲进去，用 <code>-O0</code> 和 <code>-O2</code> 各编译一次，然后看屏幕。屏幕不会撒谎，也不会因为谁资历老就偏袒谁。</p>
+
+<p>而且提问的方式很重要。比较下面两句：</p>
+
+<table>
+<tr><th style="color:var(--bad)">✗ 这样说</th><th style="color:var(--good)">✓ 这样说</th></tr>
+<tr>
+<td>"老师你讲错了，溢出不是随机值。"</td>
+<td>"老师，我试了一下，溢出以后每次都是同一个负数。但开了 -O2 之后又不一样了，这是为什么呀？"</td>
+</tr>
+</table>
+
+<p>右边这句里有三样东西：<strong>我做了实验</strong>、<strong>这是我的数据</strong>、<strong>我还有不懂的地方</strong>。</p>
+
+<p>没有人会讨厌右边这种学生。而且说不定——老师会给你一个连爸爸都不知道的答案。</p>
+
+<div class="green">
+<strong>一句话总结这一部分：</strong><br>
+关于<strong>电脑怎么工作</strong>的话，听；关于<strong>代码该怎么写</strong>的话，先问"我们的目标一样吗"；<br>
+不管听谁的，<strong>最后都以你自己跑出来的结果为准</strong>。
+</div>
+
+<div class="next">
+<p class="nt">这一篇提到的两个实验，各自有一整篇</p>
+<p>故事一 → <a href="../system/01-integer-overflow.html">整数溢出：数字数到头了会怎样？</a></p>
+<p>故事二 → <a href="../system/02-memory-stack-cache.html#grow">内存、栈与缓存：容器变大是要花钱的</a></p>
+</div>
+
+<footer>
+这一篇里没有一句"你要听话"。<br>
+给你的是三个可以自己去问的问题 —— 因为结论会过时，<strong>该问什么问题不会过时</strong>。<br><br>
+还有那条最短的路：<strong>别争论，跑个程序。</strong>屏幕不会因为谁资历老就偏袒谁。
+</footer>
+
+<p class="backtop"><a href="../../index.html">← 回到目录</a></p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.DS_Store
+*.o
+*.out
+a.out
+/tmp/
+
+# 以下只在本地，不纳入版本库（含学生个人进度与内部工作状态）
+/CLAUDE.md
+/docs/

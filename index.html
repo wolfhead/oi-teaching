@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C++ 小课堂</title>
+<style>
+  :root{
+    --bg:#fdfaf5; --ink:#2b2b3a; --muted:#6b6b80; --line:#e6e0d6;
+    --card:#fff; --accent:#e8590c; --blue:#1971c2; --good:#2f9e44; --purple:#7048e8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:17px;line-height:1.8;-webkit-text-size-adjust:100%}
+  .wrap{max-width:720px;margin:0 auto;padding:40px 20px 72px}
+  h1{font-size:1.9em;line-height:1.25;margin:0 0 10px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 30px;font-size:1.02em}
+
+  /* ---- 建议的顺序 ---- */
+  .order{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 22px;margin:0 0 40px}
+  .order .ot{font-weight:700;margin:0 0 10px}
+  .order ol{margin:0;padding-left:22px;color:var(--muted);font-size:.95em}
+  .order li{margin:5px 0}
+  .order a{color:var(--blue);text-decoration:none}
+  .order a:hover{text-decoration:underline}
+
+  /* ---- 分类 ---- */
+  .cat{margin:44px 0 0}
+  .cathead{display:flex;align-items:baseline;gap:12px;padding-bottom:10px;
+    border-bottom:3px solid var(--c);flex-wrap:wrap}
+  .catname{font-size:1.32em;font-weight:700;letter-spacing:-.01em;color:var(--c)}
+  .catdesc{color:var(--muted);font-size:.9em}
+  .count{margin-left:auto;color:var(--muted);font-size:.82em;flex:none}
+
+  .lesson{display:block;text-decoration:none;color:inherit;background:var(--card);
+    border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;
+    padding:18px 20px;margin:14px 0;
+    transition:transform .15s,box-shadow .15s,border-color .15s}
+  .lesson:hover,.lesson:active{transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(0,0,0,.07);border-color:var(--c)}
+  .lt{font-size:1.16em;font-weight:700;margin:0 0 7px;letter-spacing:-.01em}
+  .ld{color:var(--muted);font-size:.93em;margin:0}
+  .tags{margin:11px 0 0;display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:.75em;background:#f0ebe2;color:var(--muted);padding:3px 10px;border-radius:20px}
+
+  .soon{background:transparent;border:2px dashed var(--line);color:var(--muted);
+    border-radius:12px;padding:18px 20px;margin:14px 0;font-size:.93em}
+  .soon strong{color:var(--ink)}
+
+  .note{background:#fff4e6;border-left:5px solid var(--accent);border-radius:0 12px 12px 0;
+    padding:16px 20px;margin:48px 0 0}
+  .note p{margin:8px 0} .note p:first-child{margin-top:0} .note p:last-child{margin-bottom:0}
+  footer{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:.88em}
+  @media (max-width:480px){
+    body{font-size:16px} .wrap{padding:30px 16px 56px} h1{font-size:1.6em}
+    .lesson{padding:16px 17px} .count{margin-left:0;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>C++ 小课堂</h1>
+<p class="sub">给信息学竞赛准备的一点材料 —— 每一课都可以自己跑一遍验证</p>
+
+<div class="order">
+<p class="ot">第一次来？按这个顺序读</p>
+<ol>
+<li><a href="lessons/system/01-integer-overflow.html">数字数到头了会怎样？</a></li>
+<li><a href="lessons/experience/01-listen-to-engineer.html">什么时候该听老工程师的</a></li>
+<li><a href="lessons/data-structure/01-linked-list.html">链表：改得快，找得慢</a></li>
+<li><a href="lessons/system/02-memory-stack-cache.html">内存、栈与缓存</a></li>
+</ol>
+</div>
+
+<!-- ============ 数据结构 ============ -->
+<div class="cat" style="--c:#1971c2">
+<div class="cathead">
+  <span class="catname">数据结构</span>
+  <span class="catdesc">数据怎么摆，决定了你能多快地找它、改它</span>
+  <span class="count">1 篇</span>
+</div>
+
+<a class="lesson" href="lessons/data-structure/01-linked-list.html">
+  <p class="lt">链表：改得快，找得慢</p>
+  <p class="ld">链表到底是什么、插入为什么只要改两个箭头、为什么竞赛里几乎不用真的指针链表而用数组模拟 —— 最后一条有实测数据撑着。</p>
+  <div class="tags"><span class="tag">指针链表</span><span class="tag">数组模拟</span><span class="tag">约瑟夫环</span><span class="tag">5 关练习</span></div>
+</a>
+</div>
+
+<!-- ============ 系统与底层 ============ -->
+<div class="cat" style="--c:#e8590c">
+<div class="cathead">
+  <span class="catname">系统与底层</span>
+  <span class="catdesc">电脑到底怎么执行你写的东西 —— 这些十年都不会变</span>
+  <span class="count">2 篇</span>
+</div>
+
+<a class="lesson" href="lessons/system/01-integer-overflow.html">
+  <p class="lt">数字数到头了会怎样？</p>
+  <p class="ld">int 加到最大值再加 1，会变成随机数还是负数？答案是第三个。顺便看看编译器怎么把你写的代码整段删掉。</p>
+  <div class="tags"><span class="tag">整数溢出</span><span class="tag">未定义行为</span><span class="tag">编译器优化</span><span class="tag">有符号/无符号</span></div>
+</a>
+
+<a class="lesson" href="lessons/system/02-memory-stack-cache.html">
+  <p class="lt">内存、栈与缓存</p>
+  <p class="ld">大数组为什么不能开在 main 里面、vector 变大时偷偷做了什么、为什么"跳着访问内存"能慢近千倍。里面藏了一个彩蛋：你写过的那个 Stack，其实一直在你看不见的地方运行着。</p>
+  <div class="tags"><span class="tag">8MB 栈</span><span class="tag">调用栈 / 递归深度</span><span class="tag">vector 扩容</span><span class="tag">缓存</span><span class="tag">2 关练习</span></div>
+</a>
+</div>
+
+<!-- ============ 经验心得 ============ -->
+<div class="cat" style="--c:#7048e8">
+<div class="cathead">
+  <span class="catname">经验心得</span>
+  <span class="catdesc">不给结论，给能自己用的判断方法</span>
+  <span class="count">1 篇</span>
+</div>
+
+<a class="lesson" href="lessons/experience/01-listen-to-engineer.html">
+  <p class="lt">什么时候该听老工程师的</p>
+  <p class="ld">老师和爸爸说的不一样，甚至两个人说的都不完全对，那听谁的？这一篇不给答案，给三个可以自己去问的问题 —— 以及一条最短的路：别争论，跑个程序。</p>
+  <div class="tags"><span class="tag">硬件事实 vs 工程约定</span><span class="tag">目标不同</span><span class="tag">怎么提问</span></div>
+</a>
+</div>
+
+<!-- ============ 算法 ============ -->
+<div class="cat" style="--c:#2f9e44">
+<div class="cathead">
+  <span class="catname">算法</span>
+  <span class="catdesc">换一个更好的算法，比换一个更好的数据结构有用得多</span>
+  <span class="count">准备中</span>
+</div>
+
+<div class="soon">
+<strong>下一篇：复杂度与数据范围</strong><br>
+看到 n ≤ 1000 和 n ≤ 1000000，该写的其实是完全不同的两种程序。<br>
+（链表那一篇的第 5 关已经是这件事的开场白了）
+</div>
+</div>
+
+<div class="note">
+<p><strong>这些课怎么用</strong></p>
+<p>1 · 从头读一遍，不用背，看懂就行</p>
+<p>2 · 每篇末尾的练习题<strong>按顺序做</strong>，每一关都建立在前一关上</p>
+<p>3 · 里面所有的实验，<strong>都值得自己敲一遍跑跑看</strong></p>
+<p>最后一条是重点。这些课其实一直在讲同一件事：<strong>不管是老师说的、爸爸说的，还是文档写的，最后都以你自己跑出来的结果为准。</strong></p>
+</div>
+
+<footer>
+课程里的每一个性能数字都是真机器上跑出来的，不是编的。<br>
+你自己跑的结果可能和文档不完全一样 —— 那很正常，量级对就行。
+</footer>
+
+</div>
+</body>
+</html>

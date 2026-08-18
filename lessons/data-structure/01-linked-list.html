@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>链表：改得快，找得慢</title>
+<style>
+  :root{ --catc:#1971c2 }
+  :root{
+    --bg:#fdfaf5; --ink:#2b2b3a; --muted:#6b6b80; --line:#e6e0d6;
+    --card:#fff; --accent:#e8590c; --blue:#1971c2; --good:#2f9e44; --bad:#c92a2a;
+    --purple:#7048e8; --code-bg:#282a36; --code-ink:#f8f8f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:17px;line-height:1.85}
+  .wrap{max-width:780px;margin:0 auto;padding:48px 24px 100px}
+  h1{font-size:2em;line-height:1.3;margin:0 0 10px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 36px}
+  .part{margin:64px 0 0;padding:26px 0 0;border-top:3px solid var(--ink)}
+  .partnum{display:inline-block;background:var(--ink);color:#fff;font-size:.72em;font-weight:700;
+    padding:4px 12px;border-radius:20px;letter-spacing:.08em;margin-bottom:12px}
+  h2{font-size:1.6em;margin:8px 0 18px;letter-spacing:-.015em}
+  h3{font-size:1.2em;margin:38px 0 12px;padding-left:12px;border-left:4px solid var(--accent)}
+  h4{font-size:1.03em;margin:26px 0 8px;color:var(--blue)}
+  p{margin:14px 0}
+  code{background:#f0ebe2;padding:2px 6px;border-radius:4px;font-size:.9em;
+    font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:10px;
+    overflow-x:auto;font-size:.85em;line-height:1.65;font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:1em}
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 24px;margin:28px 0}
+  .toc ol{margin:6px 0;padding-left:22px} .toc li{margin:5px 0}
+  .toc a{color:var(--blue);text-decoration:none} .toc a:hover{text-decoration:underline}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .key{background:#fff4e6;border-left:5px solid var(--accent);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .blue{background:#e7f5ff;border-left:5px solid var(--blue);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .green{background:#ebfbee;border-left:5px solid var(--good);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .story{background:#f8f5ef;border-radius:12px;padding:20px 24px;margin:22px 0}
+  .story p:first-child{margin-top:0} .story p:last-child{margin-bottom:0}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.94em}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:700;color:var(--muted);font-size:.85em;letter-spacing:.03em}
+  .yes{color:var(--good);font-weight:700} .no{color:var(--bad);font-weight:700}
+  ol,ul{padding-left:24px} li{margin:7px 0}
+  /* 链表图示 */
+  .ll{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:20px 0;
+      font-family:"SF Mono",Menlo,monospace;font-size:.84em}
+  .node{display:flex;border:2px solid var(--blue);border-radius:7px;overflow:hidden;background:#fff}
+  .node .v{padding:7px 12px;font-weight:700;border-right:2px solid var(--blue)}
+  .node .p{padding:7px 10px;background:#e7f5ff;color:var(--blue)}
+  .ar{color:var(--muted);font-size:1.2em;font-weight:700}
+  .nul{padding:7px 12px;border:2px dashed var(--line);border-radius:7px;color:var(--muted)}
+  /* 数组模拟图示 */
+  .arr{margin:20px 0;font-family:"SF Mono",Menlo,monospace;font-size:.84em;overflow-x:auto}
+  .arr table{width:auto;min-width:340px;border-collapse:collapse}
+  .arr td,.arr th{border:1px solid var(--line);padding:7px 13px;text-align:center}
+  .arr th{background:#f0ebe2;color:var(--ink);font-weight:700}
+  .arr .lbl{background:#f8f5ef;font-weight:700;color:var(--muted);text-align:right}
+  .hi{background:#fff4e6;font-weight:700}
+  .ex{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .ex h4{margin-top:0;color:var(--ink);display:flex;align-items:center;gap:10px}
+  .lv{display:inline-block;font-size:.68em;font-weight:700;padding:3px 10px;border-radius:20px;color:#fff;letter-spacing:.05em}
+  .lv1{background:var(--good)} .lv2{background:var(--blue)} .lv3{background:var(--purple)} .lv4{background:var(--accent)}
+  .chk{list-style:none;padding-left:0}
+  .chk li{padding-left:30px;position:relative;margin:10px 0}
+  .chk li:before{content:"☐";position:absolute;left:4px;font-size:1.2em;color:var(--muted)}
+  footer{margin-top:70px;padding-top:22px;border-top:2px solid var(--line);color:var(--muted);font-size:.9em}
+  .big{font-size:1.2em;font-weight:700;text-align:center;margin:16px 0}
+  .fig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0;overflow-x:auto}
+  .fig svg{display:block;margin:0 auto;max-width:100%;height:auto}
+  .figcap{text-align:center;color:var(--muted);font-size:.88em;margin:10px 0 0}
+  .badge{display:inline-block;background:var(--purple);color:#fff;font-size:.68em;font-weight:700;
+    padding:3px 11px;border-radius:20px;letter-spacing:.08em;flex:none}
+  /* 折叠支线 */
+  .dig{margin:32px 0;border:3px solid var(--purple);border-radius:14px;background:#f8f6ff;
+    overflow:hidden;box-shadow:0 4px 16px rgba(112,72,232,.13)}
+  .dig summary{cursor:pointer;padding:17px 22px;font-weight:700;color:var(--purple);font-size:1.1em;
+    background:#f0ebff;
+    list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+  .dig summary::-webkit-details-marker{display:none}
+  .dig summary::before{content:"▶";font-size:.8em;transition:transform .18s}
+  .dig[open] summary::before{transform:rotate(90deg)}
+  .dig summary:hover{background:#e5dbff}
+  .digbody{padding:4px 24px 22px;border-top:1px solid #e0d8fa}
+  .digbody h4{color:var(--purple);margin:22px 0 8px}
+  .big2{font-size:1.15em;text-align:center;margin:16px 0;color:var(--purple)}
+  .frames{margin:18px 0;font-family:"SF Mono",Menlo,monospace;font-size:.86em}
+  .fr{display:flex;align-items:center;gap:10px;margin:5px 0}
+  .frl{width:52px;text-align:right;color:var(--muted);font-size:.9em;font-weight:700;flex:none}
+  .frb{flex:none;width:150px;padding:9px 12px;border:2px solid var(--purple);border-radius:6px;
+    background:#fff;text-align:center;font-weight:700;color:var(--purple)}
+  .frb.top{background:#e5dbff}
+  .frn{color:var(--muted);font-size:.88em;font-family:-apple-system,"PingFang SC",sans-serif}
+
+  /* ============ 打印 / PDF ============ */
+
+  /* ---- 分类导航 ---- */
+  .bc{display:flex;align-items:center;gap:9px;font-size:.9em;margin:0 0 28px;flex-wrap:wrap}
+  .bc a{color:var(--muted);text-decoration:none;font-weight:700}
+  .bc a:hover{color:var(--accent)}
+  .bc .sep{color:var(--line)}
+  .bc .cat{background:var(--catc);color:#fff;font-weight:700;font-size:.84em;
+    padding:3px 12px;border-radius:20px;letter-spacing:.04em}
+  .next{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 22px;margin:40px 0 0}
+  .next .nt{font-weight:700;margin:0 0 10px;font-size:.95em;color:var(--muted);letter-spacing:.03em}
+  .next p{margin:9px 0} .next p:last-child{margin-bottom:0}
+  .next a{color:var(--blue);text-decoration:none;font-weight:700}
+  .next a:hover{text-decoration:underline}
+  .backtop{margin-top:34px;font-size:.92em}
+  .backtop a{color:var(--muted);text-decoration:none}
+  .backtop a:hover{color:var(--accent)}
+
+  /* ============ 打印（不是重点，屏幕阅读为主） ============ */
+  @page { size: A4; margin: 14mm 12mm 16mm; }
+  @media print {
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    body{ font-size:10.5pt; line-height:1.72 }
+    .wrap{ max-width:100%; padding:0 }
+    h1{ font-size:19pt } h2{ font-size:14.5pt } h3{ font-size:12.5pt } h4{ font-size:11.2pt }
+    h1,h2,h3,h4{ break-after:avoid; page-break-after:avoid }
+    p,li{ orphans:3; widows:3 }
+    pre,table,.card,.ex,.fig,.key,.blue,.green,.story,.dig,.arr,.ll,.frames,.toc,footer,tr{
+      break-inside:avoid; page-break-inside:avoid }
+    .dig[open] .digbody{ display:block }
+    details{ break-inside:avoid }
+    .bc,.next,.backtop{ display:none }
+    a{ color:inherit; text-decoration:none }
+    pre{ font-size:8.6pt; line-height:1.5 }
+    table{ font-size:9.4pt } .fig svg{ max-height:74mm }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="bc">
+  <a href="../../index.html">← C++ 小课堂</a>
+  <span class="sep">/</span>
+  <span class="cat">数据结构</span>
+</nav>
+
+<h1>链表：改得快，找得慢</h1>
+<p class="sub">C++ 小课堂 · 数据结构 —— 指针链表、数组模拟，和为什么竞赛只用后者</p>
+
+<div class="toc">
+<strong>这一篇的路线</strong>
+<ol>
+<li><a href="#s1">数组的麻烦：中间插一个，后面全要挪</a></li>
+<li><a href="#s2">链表的想法：不连在一起，各自记住"下一个在哪"</a></li>
+<li><a href="#s3">链表的代价：想拿第 5 个，只能从头数</a></li>
+<li><a href="#s4">三个基本操作（遍历 / 插入 / 删除）</a></li>
+<li><a href="#s5">OI 的写法：用数组模拟链表 —— 以及为什么快近千倍</a></li>
+<li><a href="#ex">练习题 · 5 关</a> · <a href="#chk">自测清单</a></li>
+</ol>
+</div>
+
+<h3 id="s1">先想想数组的麻烦</h3>
+
+<p>数组像一排<strong>连在一起的储物柜</strong>，编号 0、1、2、3……</p>
+
+<p>好处很明显：你要第 5 个，直接走到 5 号柜，一步到位。</p>
+
+<p>但麻烦也很明显——<strong>想在中间插一个怎么办？</strong></p>
+
+<pre><code>原来：  [A][B][C][D][E]
+想在 B 后面插入 X：
+        [A][B][X][C][D][E]
+         ↑      ↑
+       不动    C、D、E 全都要往后挪一格！</code></pre>
+
+<p>数组是连在一起的，中间塞不进东西，只能<strong>把后面所有元素都搬一遍</strong>。如果有一百万个元素，插一个就要搬一百万次。</p>
+
+<h3 id="s2">链表的想法：不要连在一起</h3>
+
+<p>链表说：既然连在一起这么麻烦，那<strong>我们就不连在一起</strong>。</p>
+
+<p>每个元素单独放，但是每个元素额外记一件事：<strong>下一个在哪儿</strong>。</p>
+
+<div class="ll">
+  <span class="node"><span class="v">A</span><span class="p">next</span></span><span class="ar">→</span>
+  <span class="node"><span class="v">B</span><span class="p">next</span></span><span class="ar">→</span>
+  <span class="node"><span class="v">C</span><span class="p">next</span></span><span class="ar">→</span>
+  <span class="nul">NULL</span>
+</div>
+
+<p>每个方块叫一个<strong>节点（Node）</strong>，里面装两样东西：<strong>值</strong>，和<strong>指向下一个节点的箭头</strong>。最后一个节点的箭头指向 <code>NULL</code>，表示"到头了"。</p>
+
+<p>在 C++ 里长这样：</p>
+
+<pre><code>struct Node {
+    int val;      // 装的值
+    Node* nxt;    // 指向下一个节点（箭头）
+};</code></pre>
+
+<h4>现在再看插入</h4>
+
+<p>要在 A 和 B 中间插入 X：</p>
+
+<div class="ll">
+  <span class="node"><span class="v">A</span><span class="p">next</span></span><span class="ar">→</span>
+  <span class="node" style="border-color:var(--accent);background:#fff4e6"><span class="v" style="border-color:var(--accent)">X</span><span class="p" style="background:#ffe8cc;color:var(--accent)">next</span></span><span class="ar">→</span>
+  <span class="node"><span class="v">B</span><span class="p">next</span></span><span class="ar">→</span>
+  <span class="node"><span class="v">C</span><span class="p">next</span></span><span class="ar">→</span>
+  <span class="nul">NULL</span>
+</div>
+
+<pre><code>Node* x = new Node{99, nullptr};
+x->nxt = a->nxt;    // X 指向原来 A 指向的那个（也就是 B）
+a->nxt = x;         // A 改成指向 X</code></pre>
+
+<p><strong>只改两个箭头，两步搞定。</strong>B、C 一个都不用动，哪怕后面有一百万个节点。</p>
+
+<h3 id="s3">但是，链表也有代价</h3>
+
+<p>想拿第 5 个元素？<strong>没有捷径。</strong>必须从头开始一个一个走：A → B → C → D → E。</p>
+
+<p>数组是"直接走到 5 号柜"，链表是"从第一个开始数五下"。</p>
+
+<div class="card">
+<h4 style="margin-top:0">数组 vs 链表 · 一张表看懂</h4>
+<table>
+<tr><th></th><th>数组</th><th>链表</th></tr>
+<tr><td>取第 k 个</td><td class="yes">O(1) 一步到位</td><td class="no">O(n) 得一个个走</td></tr>
+<tr><td>已知位置，插入/删除</td><td class="no">O(n) 后面全要搬</td><td class="yes">O(1) 改两个箭头</td></tr>
+<tr><td>要不要提前知道大小</td><td>要（或者扩容+拷贝）</td><td class="yes">不用，随时加</td></tr>
+<tr><td>内存长什么样</td><td class="yes">连成一片</td><td class="no">散落各处</td></tr>
+<tr><td>额外空间</td><td class="yes">没有</td><td class="no">每个节点多存一个箭头</td></tr>
+</table>
+</div>
+
+<div class="key">
+<strong>记住这个取舍：</strong><br>
+数组：<strong>找得快，改得慢</strong>。<br>
+链表：<strong>改得快，找得慢</strong>。<br>
+没有哪个更好，只有哪个更适合你要解决的问题。
+</div>
+
+<h3 id="s4">三个基本操作</h3>
+
+<h4>① 遍历（从头走到尾）</h4>
+<pre><code>for (Node* p = head; p != nullptr; p = p-&gt;nxt) {
+    cout &lt;&lt; p-&gt;val &lt;&lt; " ";
+}</code></pre>
+<p><code>p = p-&gt;nxt</code> 就是"顺着箭头走一步"。这是链表最核心的一行代码。</p>
+
+<h4>② 在节点 p 后面插入</h4>
+<pre><code>Node* q = new Node{value, nullptr};
+q-&gt;nxt = p-&gt;nxt;   // 新节点接上后面
+p-&gt;nxt = q;        // p 接上新节点
+// 顺序不能反！反了就把后面全弄丢了</code></pre>
+
+<div class="blue">
+<strong>为什么顺序不能反？</strong>如果先写 <code>p-&gt;nxt = q</code>，那 p 原来指向谁就<strong>再也找不到了</strong>——那条链的后半段就永远丢了。这是写链表最经典的错误，一定要想清楚。
+</div>
+
+<h4>③ 删除节点 p 后面的那个</h4>
+<pre><code>Node* dead = p-&gt;nxt;
+p-&gt;nxt = dead-&gt;nxt;   // 跳过它
+delete dead;          // 释放掉</code></pre>
+
+<h3 id="s5">OI 的写法：用数组模拟链表</h3>
+
+<p>现在讲一个重要的东西。竞赛里几乎<strong>不用</strong>上面那种指针链表，而是用<strong>数组模拟</strong>。</p>
+
+<p>想法很简单：<strong>用"下标"代替"指针"。</strong></p>
+
+<div class="arr">
+<table>
+<tr><th class="lbl">下标</th><th>0</th><th>1</th><th>2</th><th>3</th></tr>
+<tr><td class="lbl">val</td><td>A</td><td>B</td><td>C</td><td class="hi">X</td></tr>
+<tr><td class="lbl">nxt</td><td class="hi">3</td><td>2</td><td>-1</td><td class="hi">1</td></tr>
+</table>
+</div>
+
+<p>怎么读这张表？从 0 号开始：<code>val[0]=A</code>，<code>nxt[0]=3</code> → 跳到 3 号：<code>val[3]=X</code>，<code>nxt[3]=1</code> → 跳到 1 号：<code>val[1]=B</code>，<code>nxt[1]=2</code> → 跳到 2 号：<code>val[2]=C</code>，<code>nxt[2]=-1</code> → 结束。</p>
+
+<p>读出来就是 <strong>A → X → B → C</strong>。和上面那个指针链表一模一样，只是箭头从"内存地址"变成了"数组下标"，<code>-1</code> 代替了 <code>NULL</code>。</p>
+
+<pre><code>const int N = 100005;
+int val[N], nxt[N];   // 两个数组就够了
+int head = 0, cnt = 0;
+
+// 在 p 后面插入一个值 v
+void insert(int p, int v) {
+    ++cnt;                // 用第 cnt 号位置当新节点
+    val[cnt] = v;
+    nxt[cnt] = nxt[p];
+    nxt[p] = cnt;
+}</code></pre>
+
+<h4>为什么竞赛要这么写？三个理由</h4>
+
+<ol>
+<li><strong>不会内存泄漏</strong>——根本没 <code>new</code>，也就不用 <code>delete</code>，少一整类 bug</li>
+<li><strong>好调试</strong>——出错了直接把 <code>nxt</code> 数组打印出来，一眼看到整条链。指针版你只能看到一堆十六进制地址</li>
+<li><strong>快得多</strong>——这条最重要，看下面的数据</li>
+</ol>
+
+<div class="fig">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,PingFang SC,sans-serif">
+  <text x="20" y="22" font-size="14" font-weight="700" fill="#2f9e44">数组：顺着走</text>
+  <g stroke="#2f9e44" stroke-width="1.5">
+    <rect x="20" y="36" width="42" height="30" fill="#ebfbee" rx="3"/><rect x="64" y="36" width="42" height="30" fill="#ebfbee" rx="3"/>
+    <rect x="108" y="36" width="42" height="30" fill="#ebfbee" rx="3"/><rect x="152" y="36" width="42" height="30" fill="#ebfbee" rx="3"/>
+    <rect x="196" y="36" width="42" height="30" fill="#ebfbee" rx="3"/><rect x="240" y="36" width="42" height="30" fill="#ebfbee" rx="3"/>
+    <rect x="284" y="36" width="42" height="30" fill="#ebfbee" rx="3"/><rect x="328" y="36" width="42" height="30" fill="#ebfbee" rx="3"/>
+    <rect x="372" y="36" width="42" height="30" fill="#ebfbee" rx="3"/><rect x="416" y="36" width="42" height="30" fill="#ebfbee" rx="3"/>
+  </g>
+  <g stroke="#2f9e44" stroke-width="2" fill="none" marker-end="url(#gar)">
+    <path d="M41 74 q22 16 44 0"/><path d="M85 74 q22 16 44 0"/><path d="M129 74 q22 16 44 0"/>
+    <path d="M173 74 q22 16 44 0"/><path d="M217 74 q22 16 44 0"/><path d="M261 74 q22 16 44 0"/>
+    <path d="M305 74 q22 16 44 0"/><path d="M349 74 q22 16 44 0"/><path d="M393 74 q22 16 44 0"/>
+  </g>
+  <rect x="480" y="36" width="200" height="56" fill="#ebfbee" stroke="#2f9e44" stroke-width="1.5" rx="6"/>
+  <text x="580" y="58" text-anchor="middle" font-size="13" font-weight="700" fill="#2f9e44">CPU 每次都猜对</text>
+  <text x="580" y="79" text-anchor="middle" font-size="12" fill="#2b8a3e">0.7 ms &nbsp;(1x)</text>
+
+  <text x="20" y="140" font-size="14" font-weight="700" fill="#c92a2a">链表：到处跳</text>
+  <g stroke="#c92a2a" stroke-width="1.5">
+    <rect x="20" y="154" width="42" height="30" fill="#fff5f5" rx="3"/><rect x="64" y="154" width="42" height="30" fill="#fff5f5" rx="3"/>
+    <rect x="108" y="154" width="42" height="30" fill="#fff5f5" rx="3"/><rect x="152" y="154" width="42" height="30" fill="#fff5f5" rx="3"/>
+    <rect x="196" y="154" width="42" height="30" fill="#fff5f5" rx="3"/><rect x="240" y="154" width="42" height="30" fill="#fff5f5" rx="3"/>
+    <rect x="284" y="154" width="42" height="30" fill="#fff5f5" rx="3"/><rect x="328" y="154" width="42" height="30" fill="#fff5f5" rx="3"/>
+    <rect x="372" y="154" width="42" height="30" fill="#fff5f5" rx="3"/><rect x="416" y="154" width="42" height="30" fill="#fff5f5" rx="3"/>
+  </g>
+  <g stroke="#c92a2a" stroke-width="2" fill="none" marker-end="url(#rar)" opacity="0.85">
+    <path d="M41 192 q130 44 260 0"/><path d="M305 192 q-120 40 -240 0"/><path d="M85 192 q160 46 306 0"/>
+    <path d="M393 192 q-100 38 -196 0"/><path d="M217 192 q80 36 156 0"/>
+  </g>
+  <rect x="480" y="154" width="200" height="56" fill="#fff5f5" stroke="#c92a2a" stroke-width="1.5" rx="6"/>
+  <text x="580" y="176" text-anchor="middle" font-size="13" font-weight="700" fill="#c92a2a">CPU 每次都猜错</text>
+  <text x="580" y="197" text-anchor="middle" font-size="12" font-weight="700" fill="#c92a2a">656 ms &nbsp;(963x)</text>
+  <text x="350" y="243" text-anchor="middle" font-size="12.5" fill="#6b6b80">同样的数据，同样的加法 —— 差别只在于「顺着走」还是「到处跳」</text>
+  <defs>
+    <marker id="gar" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#2f9e44"/></marker>
+    <marker id="rar" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#c92a2a"/></marker>
+  </defs>
+</svg>
+</div>
+<p class="figcap">CPU 读一个数时会顺手把旁边一片都读进来。数组正好顺了它的意，链表每次都让它猜错。</p>
+
+<div class="card" id="cache">
+<h4 style="margin-top:0">真实测试：遍历 500 万个数求和</h4>
+<table>
+<tr><th>做法</th><th>耗时</th><th>倍数</th></tr>
+<tr><td>连续的数组</td><td>0.7 ms</td><td>1x</td></tr>
+<tr><td>指针链表（节点挨着分配）</td><td>7.2 ms</td><td>10x</td></tr>
+<tr><td>指针链表（节点散落各处）</td><td><strong>656 ms</strong></td><td class="no"><strong>963x</strong></td></tr>
+</table>
+<p style="margin-bottom:0;font-size:.92em;color:var(--muted)">同样的数据、同样的加法，只因为内存里是"顺着走"还是"到处跳"，差了将近一千倍。</p>
+</div>
+
+<p>原因是 CPU 有个叫<strong>缓存</strong>的东西（<a href="../system/02-memory-stack-cache.html#cache">它是怎么回事，在「内存、栈与缓存」里细讲</a>）。它读一个数的时候，会顺手把旁边一片都读进来——因为它猜你接下来多半要用旁边的。数组正好顺了它的意；指针链表到处乱跳，每次都猜错，每次都要重新去内存里捞。</p>
+
+<div class="green">
+<strong>所以数组模拟链表 = 两头的好处都占：</strong><br>
+链表的<strong>本事</strong>（改箭头就能插入删除）+ 数组的<strong>内存布局</strong>（连成一片，缓存友好）。<br><br>
+不是因为竞赛选手不会写指针，是因为这么写<strong>又快又不容易错</strong>。
+</div>
+
+<h3 id="ex" style="margin-top:52px">练习题</h3>
+
+<p>五关，<strong>按顺序做</strong>，每一关都建立在前一关上面。</p>
+
+<div class="ex">
+<h4><span class="lv lv2">第 1 关</span> 手写单链表</h4>
+<p>用 <code>struct Node</code> 和指针，实现一个能做这四件事的单链表：</p>
+<ul>
+<li><code>insert(p, v)</code> — 在节点 p 后面插入值 v</li>
+<li><code>remove(p)</code> — 删掉 p 后面那个节点</li>
+<li><code>print()</code> — 从头到尾打印一遍</li>
+<li><code>find(v)</code> — 找到值为 v 的节点，返回指针（找不到返回 nullptr）</li>
+</ul>
+<p><strong>测一测：</strong>插入 1 2 3 4 5，删掉 3，再在 2 后面插入 99，打印应该是 <code>1 2 99 4 5</code>。</p>
+<p style="color:var(--muted);font-size:.93em"><strong>注意：</strong>写 insert 的时候想清楚两行的顺序，反了会丢掉半条链。</p>
+</div>
+
+<div class="ex">
+<h4><span class="lv lv2">第 2 关</span> 换成数组模拟</h4>
+<p>同样的四个功能，改用 <code>val[]</code> 和 <code>nxt[]</code> 两个数组实现，把指针换成下标，<code>NULL</code> 换成 <code>-1</code>。</p>
+<p><strong>做完对比一下：</strong>哪个版本代码更短？出 bug 的时候哪个更容易查？（试试直接打印整个 nxt 数组）</p>
+</div>
+
+<div class="ex">
+<h4><span class="lv lv3">第 3 关</span> 约瑟夫环 · 链表版</h4>
+<p><strong>题目：</strong>n 个人围成一圈（编号 1 到 n），从第 1 个人开始报数，报到 m 的人出圈，然后从下一个人重新从 1 开始报。问最后剩下的是几号？</p>
+<p><strong>例：</strong>n=5, m=3 → 出圈顺序是 3、1、5、2，最后剩下 <strong>4</strong>。</p>
+<p>用<strong>循环链表</strong>做：把最后一个节点的 nxt 指回第一个，就成了一个圈。然后一边走一边删。</p>
+</div>
+
+<div class="ex">
+<h4><span class="lv lv3">第 4 关</span> 约瑟夫环 · 数组模拟版</h4>
+<p>同一道题，换成 <code>nxt[]</code> 数组实现。感受一下调试起来是不是轻松多了。</p>
+</div>
+
+<div class="ex">
+<h4><span class="lv lv4">第 5 关</span> 约瑟夫环 · 不用链表</h4>
+<p>这一关是重点。</p>
+<p>前面两种做法都要<strong>一个一个走过去数</strong>，复杂度是 O(n×m)。如果 n 和 m 都是 100 万，会超时。</p>
+<p>但这道题其实有个 <strong>O(n) 的数学递推公式</strong>，一个循环就能算出答案，一个链表都不需要。</p>
+<p><strong>提示：</strong>设 f(n) 表示 n 个人时最后活下来的编号（从 0 开始编号），试着找出 f(n) 和 f(n-1) 的关系。想想第一个人出圈之后，剩下的问题是不是又变成了一个"n-1 个人的约瑟夫环"，只是起点挪了 m 位。</p>
+<div class="key" style="margin-bottom:0">
+这一关想通了，你就会明白 OI 里最重要的一句话：<br>
+<strong>换一个更好的算法，比换一个更好的数据结构有用得多。</strong>
+</div>
+</div>
+
+<h3 id="chk">自测清单</h3>
+<p>做完上面的题，看看这些你能不能不查资料就答上来：</p>
+<ul class="chk">
+<li>链表取第 k 个元素是 O(1) 还是 O(n)？为什么？</li>
+<li>写 insert 时，那两行赋值为什么不能反？反了会怎样？</li>
+<li>数组模拟链表用什么代替指针？用什么代替 NULL？</li>
+<li>同样是遍历，为什么散落的链表能比数组慢近千倍？</li>
+<li>什么时候该用链表，什么时候该用数组？</li>
+</ul>
+
+<div class="next">
+<p class="nt">接着读</p>
+<p>第 5 关最后那句话（"换一个更好的算法，比换一个更好的数据结构有用得多"），是<strong>算法</strong>那一类的开场白 —— 那部分还在写。</p>
+<p>想知道"散落的内存为什么这么慢"、"你写的 Stack 和系统的栈是什么关系" → <a href="../system/02-memory-stack-cache.html">内存、栈与缓存</a></p>
+</div>
+
+<footer>
+这一篇里所有的性能数字，都是在真实机器上跑出来的，不是编的。<br>
+你完全可以自己再测一遍 —— 而且你<strong>应该</strong>自己再测一遍。<br>
+你跑出来的倍数不会和这里一模一样（换台机器差得更多），<strong>量级对就行</strong>。
+</footer>
+
+<p class="backtop"><a href="../../index.html">← 回到目录</a></p>
+
+</div>
+</body>
+</html>

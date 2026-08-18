@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>内存、栈与缓存</title>
+<style>
+  :root{ --catc:#e8590c }
+  :root{
+    --bg:#fdfaf5; --ink:#2b2b3a; --muted:#6b6b80; --line:#e6e0d6;
+    --card:#fff; --accent:#e8590c; --blue:#1971c2; --good:#2f9e44; --bad:#c92a2a;
+    --purple:#7048e8; --code-bg:#282a36; --code-ink:#f8f8f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:17px;line-height:1.85}
+  .wrap{max-width:780px;margin:0 auto;padding:48px 24px 100px}
+  h1{font-size:2em;line-height:1.3;margin:0 0 10px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 36px}
+  .part{margin:64px 0 0;padding:26px 0 0;border-top:3px solid var(--ink)}
+  .partnum{display:inline-block;background:var(--ink);color:#fff;font-size:.72em;font-weight:700;
+    padding:4px 12px;border-radius:20px;letter-spacing:.08em;margin-bottom:12px}
+  h2{font-size:1.6em;margin:8px 0 18px;letter-spacing:-.015em}
+  h3{font-size:1.2em;margin:38px 0 12px;padding-left:12px;border-left:4px solid var(--accent)}
+  h4{font-size:1.03em;margin:26px 0 8px;color:var(--blue)}
+  p{margin:14px 0}
+  code{background:#f0ebe2;padding:2px 6px;border-radius:4px;font-size:.9em;
+    font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre{background:var(--code-bg);color:var(--code-ink);padding:16px 18px;border-radius:10px;
+    overflow-x:auto;font-size:.85em;line-height:1.65;font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:1em}
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 24px;margin:28px 0}
+  .toc ol{margin:6px 0;padding-left:22px} .toc li{margin:5px 0}
+  .toc a{color:var(--blue);text-decoration:none} .toc a:hover{text-decoration:underline}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .key{background:#fff4e6;border-left:5px solid var(--accent);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .blue{background:#e7f5ff;border-left:5px solid var(--blue);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .green{background:#ebfbee;border-left:5px solid var(--good);padding:14px 20px;border-radius:0 10px 10px 0;margin:22px 0}
+  .story{background:#f8f5ef;border-radius:12px;padding:20px 24px;margin:22px 0}
+  .story p:first-child{margin-top:0} .story p:last-child{margin-bottom:0}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.94em}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:700;color:var(--muted);font-size:.85em;letter-spacing:.03em}
+  .yes{color:var(--good);font-weight:700} .no{color:var(--bad);font-weight:700}
+  ol,ul{padding-left:24px} li{margin:7px 0}
+  /* 链表图示 */
+  .ll{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:20px 0;
+      font-family:"SF Mono",Menlo,monospace;font-size:.84em}
+  .node{display:flex;border:2px solid var(--blue);border-radius:7px;overflow:hidden;background:#fff}
+  .node .v{padding:7px 12px;font-weight:700;border-right:2px solid var(--blue)}
+  .node .p{padding:7px 10px;background:#e7f5ff;color:var(--blue)}
+  .ar{color:var(--muted);font-size:1.2em;font-weight:700}
+  .nul{padding:7px 12px;border:2px dashed var(--line);border-radius:7px;color:var(--muted)}
+  /* 数组模拟图示 */
+  .arr{margin:20px 0;font-family:"SF Mono",Menlo,monospace;font-size:.84em;overflow-x:auto}
+  .arr table{width:auto;min-width:340px;border-collapse:collapse}
+  .arr td,.arr th{border:1px solid var(--line);padding:7px 13px;text-align:center}
+  .arr th{background:#f0ebe2;color:var(--ink);font-weight:700}
+  .arr .lbl{background:#f8f5ef;font-weight:700;color:var(--muted);text-align:right}
+  .hi{background:#fff4e6;font-weight:700}
+  .ex{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:20px 24px;margin:22px 0}
+  .ex h4{margin-top:0;color:var(--ink);display:flex;align-items:center;gap:10px}
+  .lv{display:inline-block;font-size:.68em;font-weight:700;padding:3px 10px;border-radius:20px;color:#fff;letter-spacing:.05em}
+  .lv1{background:var(--good)} .lv2{background:var(--blue)} .lv3{background:var(--purple)} .lv4{background:var(--accent)}
+  .chk{list-style:none;padding-left:0}
+  .chk li{padding-left:30px;position:relative;margin:10px 0}
+  .chk li:before{content:"☐";position:absolute;left:4px;font-size:1.2em;color:var(--muted)}
+  footer{margin-top:70px;padding-top:22px;border-top:2px solid var(--line);color:var(--muted);font-size:.9em}
+  .big{font-size:1.2em;font-weight:700;text-align:center;margin:16px 0}
+  .fig{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:22px 0;overflow-x:auto}
+  .fig svg{display:block;margin:0 auto;max-width:100%;height:auto}
+  .figcap{text-align:center;color:var(--muted);font-size:.88em;margin:10px 0 0}
+  .badge{display:inline-block;background:var(--purple);color:#fff;font-size:.68em;font-weight:700;
+    padding:3px 11px;border-radius:20px;letter-spacing:.08em;flex:none}
+  /* 折叠支线 */
+  .dig{margin:32px 0;border:3px solid var(--purple);border-radius:14px;background:#f8f6ff;
+    overflow:hidden;box-shadow:0 4px 16px rgba(112,72,232,.13)}
+  .dig summary{cursor:pointer;padding:17px 22px;font-weight:700;color:var(--purple);font-size:1.1em;
+    background:#f0ebff;
+    list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+  .dig summary::-webkit-details-marker{display:none}
+  .dig summary::before{content:"▶";font-size:.8em;transition:transform .18s}
+  .dig[open] summary::before{transform:rotate(90deg)}
+  .dig summary:hover{background:#e5dbff}
+  .digbody{padding:4px 24px 22px;border-top:1px solid #e0d8fa}
+  .digbody h4{color:var(--purple);margin:22px 0 8px}
+  .big2{font-size:1.15em;text-align:center;margin:16px 0;color:var(--purple)}
+  .frames{margin:18px 0;font-family:"SF Mono",Menlo,monospace;font-size:.86em}
+  .fr{display:flex;align-items:center;gap:10px;margin:5px 0}
+  .frl{width:52px;text-align:right;color:var(--muted);font-size:.9em;font-weight:700;flex:none}
+  .frb{flex:none;width:150px;padding:9px 12px;border:2px solid var(--purple);border-radius:6px;
+    background:#fff;text-align:center;font-weight:700;color:var(--purple)}
+  .frb.top{background:#e5dbff}
+  .frn{color:var(--muted);font-size:.88em;font-family:-apple-system,"PingFang SC",sans-serif}
+
+  /* ============ 打印 / PDF ============ */
+
+  /* ---- 分类导航 ---- */
+  .bc{display:flex;align-items:center;gap:9px;font-size:.9em;margin:0 0 28px;flex-wrap:wrap}
+  .bc a{color:var(--muted);text-decoration:none;font-weight:700}
+  .bc a:hover{color:var(--accent)}
+  .bc .sep{color:var(--line)}
+  .bc .cat{background:var(--catc);color:#fff;font-weight:700;font-size:.84em;
+    padding:3px 12px;border-radius:20px;letter-spacing:.04em}
+  .next{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 22px;margin:40px 0 0}
+  .next .nt{font-weight:700;margin:0 0 10px;font-size:.95em;color:var(--muted);letter-spacing:.03em}
+  .next p{margin:9px 0} .next p:last-child{margin-bottom:0}
+  .next a{color:var(--blue);text-decoration:none;font-weight:700}
+  .next a:hover{text-decoration:underline}
+  .backtop{margin-top:34px;font-size:.92em}
+  .backtop a{color:var(--muted);text-decoration:none}
+  .backtop a:hover{color:var(--accent)}
+
+  /* ============ 打印（不是重点，屏幕阅读为主） ============ */
+  @page { size: A4; margin: 14mm 12mm 16mm; }
+  @media print {
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    body{ font-size:10.5pt; line-height:1.72 }
+    .wrap{ max-width:100%; padding:0 }
+    h1{ font-size:19pt } h2{ font-size:14.5pt } h3{ font-size:12.5pt } h4{ font-size:11.2pt }
+    h1,h2,h3,h4{ break-after:avoid; page-break-after:avoid }
+    p,li{ orphans:3; widows:3 }
+    pre,table,.card,.ex,.fig,.key,.blue,.green,.story,.dig,.arr,.ll,.frames,.toc,footer,tr{
+      break-inside:avoid; page-break-inside:avoid }
+    .dig[open] .digbody{ display:block }
+    details{ break-inside:avoid }
+    .bc,.next,.backtop{ display:none }
+    a{ color:inherit; text-decoration:none }
+    pre{ font-size:8.6pt; line-height:1.5 }
+    table{ font-size:9.4pt } .fig svg{ max-height:74mm }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="bc">
+  <a href="../../index.html">← C++ 小课堂</a>
+  <span class="sep">/</span>
+  <span class="cat">系统与底层</span>
+</nav>
+
+<h1>内存、栈与缓存</h1>
+<p class="sub">C++ 小课堂 · 系统与底层 —— 对竞赛来说，先掌握这三件就够用很久</p>
+
+<div class="toc">
+<strong>这一篇的路线</strong>
+<ol>
+<li><a href="#s1">第一件 · 大数组必须开在函数外面</a>（栈只有 8MB）</li>
+<li><a href="#egg">彩蛋 · 这个"栈"，就是你自己写的那个 Stack</a></li>
+<li><a href="#grow">第二件 · 容器变大是要花钱的</a>（vector 为什么翻倍）</li>
+<li><a href="#cache">第三件 · 内存跳着访问会很慢</a>（缓存）</li>
+<li><a href="#ex">练习题 · 2 关</a> · <a href="#chk">自测清单</a></li>
+</ol>
+</div>
+
+<p>底层的东西很多，但对竞赛来说，先掌握这三件就够用很久了。</p>
+
+<h3 id="s1">第一件 · 大数组必须开在函数外面</h3>
+
+<p>看这两段代码，只差一行的位置：</p>
+
+<table>
+<tr><th style="color:var(--bad)">✗ 会崩</th><th style="color:var(--good)">✓ 没事</th></tr>
+<tr>
+<td><pre style="margin:0"><code>int main(){
+    int a[3000000];
+    a[0] = 1;
+}</code></pre></td>
+<td><pre style="margin:0"><code>int a[3000000];
+int main(){
+    a[0] = 1;
+}</code></pre></td>
+</tr>
+<tr><td>直接<strong>段错误</strong>（Segmentation fault）</td><td>正常运行</td></tr>
+</table>
+
+<p>为什么？因为程序有两块地方放东西：</p>
+
+<table>
+<tr><th></th><th>栈（函数里面）</th><th>全局区（函数外面）</th></tr>
+<tr><td>放什么</td><td>局部变量、函数调用</td><td>全局变量、全局数组</td></tr>
+<tr><td>有多大</td><td class="no"><strong>通常只有 8 MB</strong></td><td class="yes">很大，看题目给多少</td></tr>
+<tr><td>超了会怎样</td><td>直接崩，还不告诉你为什么</td><td>编译时就报错</td></tr>
+</table>
+
+<div class="fig">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,PingFang SC,sans-serif">
+  <text x="175" y="24" text-anchor="middle" font-size="15" font-weight="700" fill="#c92a2a">✗ int a[3000000]; 写在 main() 里</text>
+  <text x="525" y="24" text-anchor="middle" font-size="15" font-weight="700" fill="#2f9e44">✓ int a[3000000]; 写在 main() 外</text>
+
+  <!-- 左：栈 -->
+  <rect x="70" y="45" width="210" height="90" fill="#fff5f5" stroke="#c92a2a" stroke-width="2" rx="6"/>
+  <text x="175" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#c92a2a">栈 (Stack)</text>
+  <text x="175" y="88" text-anchor="middle" font-size="12" fill="#6b6b80">上限约 8 MB</text>
+  <rect x="85" y="98" width="180" height="26" fill="#ffc9c9" stroke="#c92a2a" stroke-width="1.5" rx="4"/>
+  <text x="175" y="116" text-anchor="middle" font-size="12" font-weight="700" fill="#c92a2a">12 MB 数组</text>
+  <!-- 溢出箭头 -->
+  <path d="M175 138 L175 158" stroke="#c92a2a" stroke-width="2.5" marker-end="url(#redar)"/>
+  <text x="175" y="178" text-anchor="middle" font-size="14" font-weight="700" fill="#c92a2a">装不下 → 段错误</text>
+  <text x="175" y="199" text-anchor="middle" font-size="12" fill="#6b6b80">Segmentation fault</text>
+  <rect x="70" y="215" width="210" height="55" fill="#f8f5ef" stroke="#e6e0d6" stroke-width="2" rx="6"/>
+  <text x="175" y="240" text-anchor="middle" font-size="13" font-weight="700" fill="#6b6b80">全局区</text>
+  <text x="175" y="258" text-anchor="middle" font-size="12" fill="#adb5bd">（空着没用）</text>
+
+  <!-- 右：全局区 -->
+  <rect x="420" y="45" width="210" height="90" fill="#f8f5ef" stroke="#e6e0d6" stroke-width="2" rx="6"/>
+  <text x="525" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#6b6b80">栈 (Stack)</text>
+  <text x="525" y="88" text-anchor="middle" font-size="12" fill="#adb5bd">只放小变量</text>
+  <rect x="440" y="98" width="50" height="22" fill="#e9ecef" stroke="#ced4da" rx="3"/>
+  <text x="465" y="114" text-anchor="middle" font-size="11" fill="#6b6b80">i, n</text>
+
+  <rect x="420" y="150" width="210" height="120" fill="#ebfbee" stroke="#2f9e44" stroke-width="2" rx="6"/>
+  <text x="525" y="173" text-anchor="middle" font-size="13" font-weight="700" fill="#2f9e44">全局区</text>
+  <text x="525" y="192" text-anchor="middle" font-size="12" fill="#6b6b80">很大，看题目给多少</text>
+  <rect x="437" y="203" width="176" height="52" fill="#b2f2bb" stroke="#2f9e44" stroke-width="1.5" rx="4"/>
+  <text x="525" y="225" text-anchor="middle" font-size="12" font-weight="700" fill="#2b8a3e">12 MB 数组</text>
+  <text x="525" y="243" text-anchor="middle" font-size="11" fill="#2b8a3e">放得下 ✓</text>
+
+  <defs><marker id="redar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+    <path d="M0 0 L9 4.5 L0 9 z" fill="#c92a2a"/></marker></defs>
+</svg>
+</div>
+<p class="figcap">同一个数组，只因为写在 main() 里面还是外面，一个崩一个不崩。</p>
+
+<div class="key">
+<strong>竞赛铁律：数组开大了，就放到 <code>main()</code> 外面去。</strong><br>
+12 MB 的数组放函数里必崩，放外面没事。<br>
+以后你如果遇到"莫名其妙 RE（运行时错误）"，先检查这一条。
+</div>
+
+<details class="dig" id="egg" open>
+<summary><span class="badge">彩 蛋</span>这个"栈"，就是你自己写的那个 Stack</summary>
+<div class="digbody">
+
+<p class="big2">是的，<strong>完完全全是同一个东西。</strong></p>
+
+<p>这不是两个东西碰巧同名。你写的那个 <code>Stack</code>，和这里说的"栈内存"，是<strong>同一个概念的两次出场</strong>。</p>
+
+<h4>你写的 Stack 是什么？</h4>
+<p>push 放进去，pop 拿出来，<strong>后进先出</strong>——最后放进去的最先拿出来。</p>
+
+<h4>程序调用函数的时候，用的就是一个栈</h4>
+
+<p>每调用一个函数，就往栈里 <strong>push 一个"栈帧"</strong>（stack frame）。栈帧里装着这个函数的<strong>局部变量</strong>和<strong>回去的地址</strong>。函数返回时，<strong>pop 掉</strong>。</p>
+
+<pre><code>main() 调用 f()，f() 又调用 g()</code></pre>
+
+<div class="frames">
+  <div class="fr"><span class="frl">栈顶 →</span><span class="frb top">g 的栈帧</span><span class="frn">最后进来，最先出去</span></div>
+  <div class="fr"><span class="frl"></span><span class="frb">f 的栈帧</span><span class="frn"></span></div>
+  <div class="fr"><span class="frl"></span><span class="frb">main 的栈帧</span><span class="frn">最先进来，最后出去</span></div>
+</div>
+
+<p>g 一定比 f 先返回，f 一定比 main 先返回。<strong>为什么？</strong>因为 f 还没执行完就去调用 g 了，g 不结束 f 就没法继续。</p>
+
+<p>这正是<strong>后进先出</strong>。所以操作系统管理函数调用，用的就是一个货真价实的栈——和你写的那个一模一样，只是它由 CPU 自动 push 和 pop，不用你写代码。</p>
+
+<div class="blue" style="margin:18px 0">
+它甚至有个专门的寄存器叫 <strong>栈指针</strong>（stack pointer），存的就是"现在栈顶在哪"。<br>
+你的 <code>Stack</code> 里用 <code>v.back()</code> 找栈顶，CPU 用这个寄存器找栈顶。<strong>一回事。</strong>
+</div>
+
+<h4>现在，两件事同时说得通了</h4>
+
+<p><strong>① 为什么大数组开在 main 里会崩？</strong></p>
+<p>因为局部变量放在<strong>栈帧</strong>里。<code>int a[3000000]</code> 是 12MB 的局部变量，要塞进一个栈帧——可整个栈只有 8MB。<strong>栈装不下，就是"栈溢出"（stack overflow）。</strong></p>
+
+<p><strong>② 为什么递归太深也会崩？</strong></p>
+<p>每递归一层，就 push 一个栈帧，而且<strong>一层都没 pop</strong>（因为都还没返回）。递归一万层，栈里就堆了一万个栈帧。堆到超过 8MB，一样溢出。</p>
+
+<p>我实测了一下这台机器能递归多深：</p>
+
+<table>
+<tr><th>函数长什么样</th><th>崩在第几层</th><th>每层大约占</th></tr>
+<tr><td>空函数（没有局部变量）</td><td>约 <strong>25 万</strong> 层</td><td>约 32 字节</td></tr>
+<tr><td>带几个局部变量（像真的 DFS）</td><td>约 <strong>5 万</strong> 层</td><td>约 160 字节</td></tr>
+</table>
+
+<p><strong>局部变量越多，栈帧越大，能递归的层数就越少。</strong></p>
+
+<div class="key" style="margin:18px 0">
+<strong>这条在竞赛里会救你的命：</strong><br>
+如果题目的 n 有 100 万，而你写了个递归 DFS，一路走下去可能要递归 100 万层——<strong>必爆栈</strong>。<br>
+这时候你会 RE，但样例全过，怎么查都查不出错在哪。
+</div>
+
+<h4>那怎么办？—— 用你自己写的 Stack</h4>
+
+<p>解决办法有意思极了：<strong>把递归改写成循环，自己拿一个 Stack 来存"本来该放在栈帧里的东西"。</strong></p>
+
+<pre><code>// 递归版：用系统的栈，深了会崩
+void dfs(int u){
+    vis[u] = 1;
+    for (int v : g[u]) if (!vis[v]) dfs(v);
+}
+
+// 手写栈版：用自己的栈，开多大你说了算
+Stack&lt;int&gt; s;
+s.push(start);
+while (!s.empty()) {
+    int u = s.top(); s.pop();
+    if (vis[u]) continue;
+    vis[u] = 1;
+    for (int v : g[u]) if (!vis[v]) s.push(v);
+}</code></pre>
+
+<p>为什么这样就不崩了？因为你的 <code>Stack</code> 底下是<strong>数组</strong>（放在全局区，很大），而不是那 8MB 的系统栈。</p>
+
+<div class="green" style="margin-bottom:0">
+<strong>所以你上周写的那个 Stack，不是一道练习题而已。</strong><br>
+它是 OI 里"把递归改成迭代"的标准工具——而这个技巧，专门用来对付这一节讲的栈溢出。<br><br>
+<strong>递归会爆掉系统的栈；解决办法是自己造一个栈。</strong>
+</div>
+
+</div>
+</details>
+
+<h3 id="grow">第二件 · 容器变大是要花钱的</h3>
+
+<p>你写过的那个 <code>Stack</code> 里面用了 <code>string v</code>，每次 <code>push_back</code> 看起来都一样。但其实不是——它<strong>偶尔会偷偷做一件很贵的事</strong>。</p>
+
+<p>在你的 <code>push</code> 里加一行，自己看看：</p>
+
+<pre><code>void push(char a){
+    v.push_back(a);
+    printf("size=%zu capacity=%zu\n", v.size(), v.capacity());
+}</code></pre>
+
+<p>你会看到 capacity 是这样跳的：</p>
+
+<div class="big" style="font-family:Menlo,monospace;font-size:1em">1 → 2 → 4 → 8 → 16 → 32 → 64 → 128 → …</div>
+
+<div class="fig">
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,PingFang SC,sans-serif">
+  <g font-size="11" fill="#6b6b80">
+    <text x="30" y="40" font-weight="700">容量 1</text>
+    <text x="30" y="90" font-weight="700">容量 2</text>
+    <text x="30" y="140" font-weight="700">容量 4</text>
+    <text x="30" y="190" font-weight="700">容量 8</text>
+  </g>
+  <!-- 每行格子 -->
+  <g stroke="#1971c2" stroke-width="1.5">
+    <rect x="100" y="26" width="26" height="20" fill="#a5d8ff" rx="2"/>
+  </g>
+  <g stroke="#1971c2" stroke-width="1.5">
+    <rect x="100" y="76" width="26" height="20" fill="#d0ebff" rx="2"/>
+    <rect x="128" y="76" width="26" height="20" fill="#a5d8ff" rx="2"/>
+  </g>
+  <g stroke="#1971c2" stroke-width="1.5">
+    <rect x="100" y="126" width="26" height="20" fill="#d0ebff" rx="2"/>
+    <rect x="128" y="126" width="26" height="20" fill="#d0ebff" rx="2"/>
+    <rect x="156" y="126" width="26" height="20" fill="#a5d8ff" rx="2"/>
+    <rect x="184" y="126" width="26" height="20" fill="#fff" rx="2"/>
+  </g>
+  <g stroke="#1971c2" stroke-width="1.5">
+    <rect x="100" y="176" width="26" height="20" fill="#d0ebff" rx="2"/>
+    <rect x="128" y="176" width="26" height="20" fill="#d0ebff" rx="2"/>
+    <rect x="156" y="176" width="26" height="20" fill="#d0ebff" rx="2"/>
+    <rect x="184" y="176" width="26" height="20" fill="#a5d8ff" rx="2"/>
+    <rect x="212" y="176" width="26" height="20" fill="#fff" rx="2"/>
+    <rect x="240" y="176" width="26" height="20" fill="#fff" rx="2"/>
+    <rect x="268" y="176" width="26" height="20" fill="#fff" rx="2"/>
+    <rect x="296" y="176" width="26" height="20" fill="#fff" rx="2"/>
+  </g>
+  <!-- 搬运箭头 -->
+  <g stroke="#e8590c" stroke-width="2" fill="none" marker-end="url(#orar)">
+    <path d="M113 50 L113 72"/><path d="M127 100 L127 122"/><path d="M155 150 L155 172"/>
+  </g>
+  <g font-size="11" fill="#e8590c" font-weight="700">
+    <text x="122" y="65">搬 1 个</text><text x="136" y="115">搬 2 个</text><text x="164" y="165">搬 4 个</text>
+  </g>
+  <!-- 说明 -->
+  <rect x="380" y="30" width="290" height="175" fill="#fff4e6" stroke="#e8590c" stroke-width="1.5" rx="8"/>
+  <text x="400" y="56" font-size="13" font-weight="700" fill="#e8590c">每次装满 → 申请两倍大的新地方</text>
+  <text x="400" y="78" font-size="13" font-weight="700" fill="#e8590c">→ 老数据全部搬过去 → 扔掉旧的</text>
+  <line x1="400" y1="92" x2="650" y2="92" stroke="#ffd8a8" stroke-width="1.5"/>
+  <text x="400" y="115" font-size="12.5" fill="#2b2b3a">塞 1000 万个数：</text>
+  <text x="400" y="137" font-size="12.5" fill="#2f9e44" font-weight="700">翻倍 → 共搬 1700 万次 ✓</text>
+  <text x="400" y="159" font-size="12.5" fill="#c92a2a" font-weight="700">每次加 1 → 共搬 5 万亿次 ✗</text>
+  <text x="400" y="186" font-size="11.5" fill="#6b6b80">这就是为什么所有 vector 都翻倍</text>
+  <defs><marker id="orar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+    <path d="M0 0 L8 4 L0 8 z" fill="#e8590c"/></marker></defs>
+</svg>
+</div>
+<p class="figcap">浅蓝 = 已经装了的数据，白色 = 空位。每次搬家，颜色深的那格是刚 push 进来的。</p>
+
+<p>每次装满了，它就<strong>申请一块两倍大的新地方，把老数据全部搬过去，再把旧的扔掉</strong>。</p>
+
+<p>实测往里面塞 1000 万个数：</p>
+
+<table>
+<tr><th>做法</th><th>耗时</th></tr>
+<tr><td>静态数组 <code>a[top++] = x</code></td><td class="yes">4.3 ms</td></tr>
+<tr><td><code>vector::push_back</code></td><td class="no">14.8 ms（慢 3.4 倍）</td></tr>
+<tr><td><code>vector</code> + 提前 <code>reserve</code></td><td>7.5 ms（快了一半）</td></tr>
+</table>
+
+<div class="blue">
+<strong>想一想：为什么是"翻倍"，不是"每次多加 1 个位置"？</strong><br><br>
+翻倍的话，塞 1000 万个数，总共只搬了大约 1700 万次（1.7 倍）。<br>
+如果每次只加 1 个，总共要搬 <strong>50,000,000,000,000 次</strong>（5 万亿）——程序永远跑不完。<br><br>
+这就是为什么所有的 vector 都用翻倍。这个想法有个名字，叫<strong>摊还分析</strong>。
+</div>
+
+<h3 id="cache">第三件 · 内存跳着访问会很慢</h3>
+
+<p>CPU 去内存里取一个数的时候，<strong>不会只取那一个</strong>。它会顺手把旁边一整片都搬进一个叫<strong>缓存</strong>（cache）的小房间里 —— 因为它赌你接下来多半要用旁边的。</p>
+
+<p>这个赌注决定了你的程序快还是慢：</p>
+
+<table>
+<tr><th>你的数据在内存里</th><th>CPU 的赌注</th><th>结果</th></tr>
+<tr><td><strong>连成一片</strong>（数组）</td><td class="yes">几乎每次都赌对</td><td class="yes">要的数已经在小房间里，直接拿</td></tr>
+<tr><td><strong>散落各处</strong>（指针链表）</td><td class="no">几乎每次都赌错</td><td class="no">每次都得重新跑一趟内存</td></tr>
+</table>
+
+<p>差距有多大？在<a href="../data-structure/01-linked-list.html#cache">链表那一篇</a>里实测过：同样是遍历 500 万个数求和，连续的数组 <strong>0.7 ms</strong>，节点散落各处的指针链表 <strong>656 ms</strong>。同样的数据、同样的加法，只因为内存里是"顺着走"还是"到处跳"，<strong>差了将近一千倍</strong>。</p>
+
+<div class="key">
+<strong>记住结论：能连着放，就别散着放。</strong><br>
+这也是为什么竞赛里宁可用数组模拟链表，也不用真的指针链表。
+</div>
+
+<p>顺便一提，这也解释了另一件事：二维数组 <code>a[i][j]</code>，<strong>按行遍历比按列遍历快好几倍</strong>，因为按行才是顺着内存走的。以后卡时间的时候这一招能救命。</p>
+
+<h3 id="ex" style="margin-top:52px">练习题</h3>
+
+<p>两关，都是<strong>亲眼看见</strong>类型的 —— 上面写的每一条，你都可以在自己电脑上验证一遍。</p>
+
+<div class="ex">
+<h4><span class="lv lv1">第 1 关</span> 亲手看见段错误</h4>
+<p>把上面那两段代码（数组在 main 里 / 在 main 外）各跑一遍，亲眼看到一个崩一个不崩。</p>
+<p><strong>要回答的问题：</strong>把数组改成多大，放在 main 里面就正好不崩了？（提示：栈大约 8MB，一个 int 占 4 字节）</p>
+</div>
+
+<div class="ex">
+<h4><span class="lv lv1">第 2 关</span> 看见扩容</h4>
+<p>把上面那行 <code>printf</code> 加到你自己写的 <code>Stack::push</code> 里，然后输入一个长一点的括号串，观察 capacity 怎么跳。</p>
+<p><strong>要回答的问题：</strong>塞 100 个字符进去，一共扩容了几次？总共搬运了多少个字符？</p>
+</div>
+
+<h3 id="chk">自测清单</h3>
+<p>做完上面的题，看看这些你能不能不查资料就答上来：</p>
+<ul class="chk">
+<li>12MB 的数组为什么不能开在 main 里面？</li>
+<li>函数调用用的"栈"，和你自己写的 Stack 是什么关系？</li>
+<li>为什么递归太深会崩？改成手写栈为什么就不崩了？</li>
+<li>vector 扩容为什么是翻倍，不是每次加一个？</li>
+<li>同样是遍历，为什么散落的链表能比数组慢近千倍？</li>
+</ul>
+
+<div class="next">
+<p class="nt">接着读</p>
+<p>彩蛋里那个"把递归改成迭代"的技巧，底下垫的是<a href="../data-structure/01-linked-list.html">数据结构</a> —— 你写的 Stack 就是那类东西。</p>
+<p>同一类里还有：<a href="01-integer-overflow.html">整数溢出：数字数到头了会怎样？</a></p>
+</div>
+
+<footer>
+这份文档里所有的性能数字，都是在真实机器上跑出来的，不是编的。<br>
+栈上限 8MB、递归 25 万层，这些都<strong>跟机器有关</strong> —— 换台电脑、换个评测机，数字会变。<br><br>
+所以还是那句：不管是老师说的、爸爸说的，还是这份文档说的，<br>
+<strong>最后都以你自己跑出来的结果为准。</strong>
+</footer>
+
+<p class="backtop"><a href="../../index.html">← 回到目录</a></p>
+
+</div>
+</body>
+</html>
